@@ -1,0 +1,14 @@
+syntax = "proto3";
+package codchen.newchainpoc.newchainpoc;
+
+import "gogoproto/gogo.proto";
+import "newchainpoc/params.proto";
+// this line is used by starport scaffolding # genesis/proto/import
+
+option go_package = "github.com/codchen/new-chain-poc/x/newchainpoc/types";
+
+// GenesisState defines the newchainpoc module's genesis state.
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+  // this line is used by starport scaffolding # genesis/proto/state
+}
