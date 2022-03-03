@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/CosmWasm/wasmd/x/wasm"
 	"github.com/codchen/new-chain-poc/app"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -83,7 +84,9 @@ func BenchmarkSimulation(b *testing.B) {
 		app.DefaultNodeHome,
 		0,
 		encoding,
+		wasm.EnableAllProposals,
 		simapp.EmptyAppOptions{},
+		nil,
 	)
 
 	simApp, ok := app.(SimApp)
