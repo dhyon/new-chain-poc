@@ -5,11 +5,10 @@ import (
 
 	"github.com/codchen/new-chain-poc/app"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
-	"github.com/tendermint/starport/starport/pkg/cosmoscmd"
 )
 
 func main() {
-	rootCmd, _ := cosmoscmd.NewRootCmd(
+	rootCmd, _ := NewRootCmd(
 		app.Name,
 		app.AccountAddressPrefix,
 		app.DefaultNodeHome,
