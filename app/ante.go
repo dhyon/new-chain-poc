@@ -59,7 +59,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		ante.NewValidateSigCountDecorator(options.AccountKeeper),
 		ante.NewSigGasConsumeDecorator(options.AccountKeeper, sigGasConsumer),
 		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
-		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
+		// ante.NewIncrementSequenceDecorator(options.AccountKeeper), // temporarily commented out for load testing
 		ibcante.NewAnteDecorator(options.IBCChannelkeeper),
 	}
 
