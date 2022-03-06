@@ -438,6 +438,7 @@ func initAppConfig() (string, interface{}) {
 	//
 	// In simapp, we set the min gas prices to 0.
 	srvCfg.MinGasPrices = "0stake"
+	srvCfg.API.Enable = true
 
 	customAppConfig := CustomAppConfig{
 		Config: *srvCfg,
