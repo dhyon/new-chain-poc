@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -99,6 +100,11 @@ import (
 	newchainpocmodulekeeper "github.com/codchen/new-chain-poc/x/newchainpoc/keeper"
 	newchainpocmoduletypes "github.com/codchen/new-chain-poc/x/newchainpoc/types"
 
+	dexmodule "github.com/codchen/new-chain-poc/x/dex"
+	dexcache "github.com/codchen/new-chain-poc/x/dex/cache"
+	dexmodulekeeper "github.com/codchen/new-chain-poc/x/dex/keeper"
+	dexmoduletypes "github.com/codchen/new-chain-poc/x/dex/types"
+
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	"github.com/CosmWasm/wasmd/x/wasm"
@@ -153,6 +159,7 @@ var (
 		vesting.AppModuleBasic{},
 		wasm.AppModuleBasic{},
 		newchainpocmodule.AppModuleBasic{},
+		dexmodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
 
@@ -226,6 +233,9 @@ type App struct {
 	ScopedWasmKeeper     capabilitykeeper.ScopedKeeper
 
 	NewchainpocKeeper newchainpocmodulekeeper.Keeper
+
+	DexKeeper dexmodulekeeper.Keeper
+
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// mm is the module manager
@@ -265,6 +275,7 @@ func New(
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey, wasm.StoreKey,
 		newchainpocmoduletypes.StoreKey,
+		dexmoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -404,6 +415,14 @@ func New(
 	)
 	newchainpocModule := newchainpocmodule.NewAppModule(appCodec, app.NewchainpocKeeper, app.AccountKeeper, app.BankKeeper)
 
+	app.DexKeeper = *dexmodulekeeper.NewKeeper(
+		appCodec,
+		keys[dexmoduletypes.StoreKey],
+		keys[dexmoduletypes.MemStoreKey],
+		app.GetSubspace(dexmoduletypes.ModuleName),
+	)
+	dexModule := dexmodule.NewAppModule(appCodec, app.DexKeeper, app.AccountKeeper, app.BankKeeper)
+
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
 	// Create static IBC router, add transfer route, then set and seal it
@@ -445,6 +464,7 @@ func New(
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
 		newchainpocModule,
+		dexModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 
@@ -470,6 +490,7 @@ func New(
 		evidencetypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		feegrant.ModuleName,
+		dexmoduletypes.ModuleName,
 		wasm.ModuleName,
 		newchainpocmoduletypes.ModuleName,
 	)
@@ -492,6 +513,7 @@ func New(
 		evidencetypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		feegrant.ModuleName,
+		dexmoduletypes.ModuleName,
 		wasm.ModuleName,
 		newchainpocmoduletypes.ModuleName,
 	)
@@ -519,6 +541,7 @@ func New(
 		evidencetypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		feegrant.ModuleName,
+		dexmoduletypes.ModuleName,
 		wasm.ModuleName,
 		newchainpocmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
@@ -545,6 +568,7 @@ func New(
 		ibc.NewAppModule(app.IBCKeeper),
 		transferModule,
 		newchainpocModule,
+		dexModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 	app.sm.RegisterStoreDecoders()
@@ -606,6 +630,9 @@ func (app App) GetBaseApp() *baseapp.BaseApp { return app.BaseApp }
 
 // BeginBlocker application updates every begin block
 func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+	ctx.WithContext(
+		context.WithValue(ctx.Context(), dexcache.GOCTX_KEY, dexcache.NewOrders()),
+	)
 	return app.mm.BeginBlock(ctx, req)
 }
 
@@ -745,6 +772,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(newchainpocmoduletypes.ModuleName)
 	paramsKeeper.Subspace(wasm.ModuleName)
+	paramsKeeper.Subspace(dexmoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	return paramsKeeper
