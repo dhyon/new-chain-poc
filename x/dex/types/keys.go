@@ -20,3 +20,13 @@ const (
 func KeyPrefix(p string) []byte {
 	return []byte(p)
 }
+
+const (
+	LongBookKey      = "LongBook-value-"
+	LongBookCountKey = "LongBook-count-"
+)
+
+const (
+	ShortBookKey      = "ShortBook-value-"
+	ShortBookCountKey = "ShortBook-count-"
+)

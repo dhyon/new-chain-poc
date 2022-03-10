@@ -19,12 +19,82 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid:    true,
 		},
 		{
-			desc:     "valid genesis state",
+			desc: "valid genesis state",
 			genState: &types.GenesisState{
 
+				LongBookList: []types.LongBook{
+					{
+						Id: 0,
+					},
+					{
+						Id: 1,
+					},
+				},
+				LongBookCount: 2,
+				ShortBookList: []types.ShortBook{
+					{
+						Id: 0,
+					},
+					{
+						Id: 1,
+					},
+				},
+				ShortBookCount: 2,
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
+		},
+		{
+			desc: "duplicated longBook",
+			genState: &types.GenesisState{
+				LongBookList: []types.LongBook{
+					{
+						Id: 0,
+					},
+					{
+						Id: 0,
+					},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "invalid longBook count",
+			genState: &types.GenesisState{
+				LongBookList: []types.LongBook{
+					{
+						Id: 1,
+					},
+				},
+				LongBookCount: 0,
+			},
+			valid: false,
+		},
+		{
+			desc: "duplicated shortBook",
+			genState: &types.GenesisState{
+				ShortBookList: []types.ShortBook{
+					{
+						Id: 0,
+					},
+					{
+						Id: 0,
+					},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "invalid shortBook count",
+			genState: &types.GenesisState{
+				ShortBookList: []types.ShortBook{
+					{
+						Id: 1,
+					},
+				},
+				ShortBookCount: 0,
+			},
+			valid: false,
 		},
 		// this line is used by starport scaffolding # types/genesis/testcase
 	} {
