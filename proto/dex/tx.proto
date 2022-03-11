@@ -7,7 +7,45 @@ option go_package = "github.com/codchen/new-chain-poc/x/dex/types";
 
 // Msg defines the Msg service.
 service Msg {
-    // this line is used by starport scaffolding # proto/tx/rpc
+      rpc LimitBuy(MsgLimitBuy) returns (MsgLimitBuyResponse);
+  rpc LimitSell(MsgLimitSell) returns (MsgLimitSellResponse);
+  rpc MarketBuy(MsgMarketBuy) returns (MsgMarketBuyResponse);
+  rpc MarketSell(MsgMarketSell) returns (MsgMarketSellResponse);
+// this line is used by starport scaffolding # proto/tx/rpc
+}
+
+message MsgLimitBuy {
+  string creator = 1;
+  int32 price = 2;
+  int32 quantity = 3;
+}
+
+message MsgLimitBuyResponse {
+}
+
+message MsgLimitSell {
+  string creator = 1;
+  int32 price = 2;
+  int32 quantity = 3;
+}
+
+message MsgLimitSellResponse {
+}
+
+message MsgMarketBuy {
+  string creator = 1;
+  int32 quantity = 2;
+}
+
+message MsgMarketBuyResponse {
+}
+
+message MsgMarketSell {
+  string creator = 1;
+  int32 quantity = 2;
+}
+
+message MsgMarketSellResponse {
 }
 
 // this line is used by starport scaffolding # proto/tx/message
