@@ -24,7 +24,23 @@ var (
 )
 
 const (
-// this line is used by starport scaffolding # simapp/module/const
+	opWeightMsgLimitBuy = "op_weight_msg_create_chain"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgLimitBuy int = 100
+
+	opWeightMsgLimitSell = "op_weight_msg_create_chain"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgLimitSell int = 100
+
+	opWeightMsgMarketBuy = "op_weight_msg_create_chain"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgMarketBuy int = 100
+
+	opWeightMsgMarketSell = "op_weight_msg_create_chain"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgMarketSell int = 100
+
+	// this line is used by starport scaffolding # simapp/module/const
 )
 
 // GenerateGenesisState creates a randomized GenState of the module
@@ -56,6 +72,50 @@ func (am AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {}
 // WeightedOperations returns the all the gov module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
 	operations := make([]simtypes.WeightedOperation, 0)
+
+	var weightMsgLimitBuy int
+	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgLimitBuy, &weightMsgLimitBuy, nil,
+		func(_ *rand.Rand) {
+			weightMsgLimitBuy = defaultWeightMsgLimitBuy
+		},
+	)
+	operations = append(operations, simulation.NewWeightedOperation(
+		weightMsgLimitBuy,
+		dexsimulation.SimulateMsgLimitBuy(am.accountKeeper, am.bankKeeper, am.keeper),
+	))
+
+	var weightMsgLimitSell int
+	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgLimitSell, &weightMsgLimitSell, nil,
+		func(_ *rand.Rand) {
+			weightMsgLimitSell = defaultWeightMsgLimitSell
+		},
+	)
+	operations = append(operations, simulation.NewWeightedOperation(
+		weightMsgLimitSell,
+		dexsimulation.SimulateMsgLimitSell(am.accountKeeper, am.bankKeeper, am.keeper),
+	))
+
+	var weightMsgMarketBuy int
+	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgMarketBuy, &weightMsgMarketBuy, nil,
+		func(_ *rand.Rand) {
+			weightMsgMarketBuy = defaultWeightMsgMarketBuy
+		},
+	)
+	operations = append(operations, simulation.NewWeightedOperation(
+		weightMsgMarketBuy,
+		dexsimulation.SimulateMsgMarketBuy(am.accountKeeper, am.bankKeeper, am.keeper),
+	))
+
+	var weightMsgMarketSell int
+	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgMarketSell, &weightMsgMarketSell, nil,
+		func(_ *rand.Rand) {
+			weightMsgMarketSell = defaultWeightMsgMarketSell
+		},
+	)
+	operations = append(operations, simulation.NewWeightedOperation(
+		weightMsgMarketSell,
+		dexsimulation.SimulateMsgMarketSell(am.accountKeeper, am.bankKeeper, am.keeper),
+	))
 
 	// this line is used by starport scaffolding # simapp/module/operation
 
