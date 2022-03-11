@@ -1,0 +1,86 @@
+syntax = "proto3";
+package codchen.newchainpoc.dex;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "dex/params.proto";
+import "dex/long_book.proto";
+import "dex/short_book.proto";
+// this line is used by starport scaffolding # 1
+
+option go_package = "github.com/codchen/new-chain-poc/x/dex/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Parameters queries the parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/codchen/newchainpoc/dex/params";
+  }
+  // Queries a LongBook by id.
+	rpc LongBook(QueryGetLongBookRequest) returns (QueryGetLongBookResponse) {
+		option (google.api.http).get = "/codchen/newchainpoc/dex/long_book/{id}";
+	}
+
+	// Queries a list of LongBook items.
+	rpc LongBookAll(QueryAllLongBookRequest) returns (QueryAllLongBookResponse) {
+		option (google.api.http).get = "/codchen/newchainpoc/dex/long_book";
+	}
+
+// Queries a ShortBook by id.
+	rpc ShortBook(QueryGetShortBookRequest) returns (QueryGetShortBookResponse) {
+		option (google.api.http).get = "/codchen/newchainpoc/dex/short_book/{id}";
+	}
+
+	// Queries a list of ShortBook items.
+	rpc ShortBookAll(QueryAllShortBookRequest) returns (QueryAllShortBookResponse) {
+		option (google.api.http).get = "/codchen/newchainpoc/dex/short_book";
+	}
+
+// this line is used by starport scaffolding # 2
+}
+
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryGetLongBookRequest {
+	uint64 id = 1;
+}
+
+message QueryGetLongBookResponse {
+	LongBook LongBook = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryAllLongBookRequest {
+	cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllLongBookResponse {
+	repeated LongBook LongBook = 1 [(gogoproto.nullable) = false];
+	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryGetShortBookRequest {
+	uint64 id = 1;
+}
+
+message QueryGetShortBookResponse {
+	ShortBook ShortBook = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryAllShortBookRequest {
+	cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllShortBookResponse {
+	repeated ShortBook ShortBook = 1 [(gogoproto.nullable) = false];
+	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// this line is used by starport scaffolding # 3

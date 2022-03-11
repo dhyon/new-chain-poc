@@ -1,0 +1,12 @@
+syntax = "proto3";
+package codchen.newchainpoc.dex;
+
+option go_package = "github.com/codchen/new-chain-poc/x/dex/types";
+
+message OrderEntry {
+  
+  int32 price = 1; 
+  int32 quantity = 2; 
+  repeated string allocationCreator = 3; 
+  repeated int32 allocation = 4; 
+}

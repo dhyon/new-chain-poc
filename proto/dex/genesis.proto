@@ -1,0 +1,20 @@
+syntax = "proto3";
+package codchen.newchainpoc.dex;
+
+import "gogoproto/gogo.proto";
+import "dex/params.proto";
+import "dex/long_book.proto";
+import "dex/short_book.proto";
+// this line is used by starport scaffolding # genesis/proto/import
+
+option go_package = "github.com/codchen/new-chain-poc/x/dex/types";
+
+// GenesisState defines the dex module's genesis state.
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+  repeated LongBook longBookList = 2 [(gogoproto.nullable) = false];
+  uint64 longBookCount = 3;
+  repeated ShortBook shortBookList = 4 [(gogoproto.nullable) = false];
+  uint64 shortBookCount = 5;
+  // this line is used by starport scaffolding # genesis/proto/state
+}

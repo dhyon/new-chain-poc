@@ -1,0 +1,12 @@
+syntax = "proto3";
+package codchen.newchainpoc.dex;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/codchen/new-chain-poc/x/dex/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+  
+}
