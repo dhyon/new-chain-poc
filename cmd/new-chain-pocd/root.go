@@ -30,6 +30,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/tendermint/starport/starport/pkg/cosmoscmd"
+	cmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
@@ -192,6 +193,7 @@ func initRootCmd(
 		genutilcli.ValidateGenesisCmd(moduleBasics),
 		cosmoscmd.AddGenesisAccountCmd(defaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
+		cmd.TestnetFilesCmd,
 		debug.Cmd(),
 		config.Cmd(),
 	)
