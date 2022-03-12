@@ -45,7 +45,7 @@ func (k Keeper) AppendShortBook(
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.ShortBookKey))
 	appendedValue := k.cdc.MustMarshal(&shortBook)
-	store.Set(GetShortBookIDBytes(shortBook.Id), appendedValue)
+	store.Set(GetKeyForShortBook(shortBook), appendedValue)
 
 	// Update shortBook count
 	k.SetShortBookCount(ctx, count+1)
@@ -57,10 +57,11 @@ func (k Keeper) AppendShortBook(
 func (k Keeper) SetShortBook(ctx sdk.Context, shortBook types.ShortBook) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.ShortBookKey))
 	b := k.cdc.MustMarshal(&shortBook)
-	store.Set(GetShortBookIDBytes(shortBook.Id), b)
+	store.Set(GetKeyForShortBook(shortBook), b)
 }
 
 // GetShortBook returns a shortBook from its id
+// DO NOT USE
 func (k Keeper) GetShortBook(ctx sdk.Context, id uint64) (val types.ShortBook, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.ShortBookKey))
 	b := store.Get(GetShortBookIDBytes(id))
@@ -71,10 +72,26 @@ func (k Keeper) GetShortBook(ctx sdk.Context, id uint64) (val types.ShortBook, f
 	return val, true
 }
 
+func (k Keeper) GetShortBookByPrice(ctx sdk.Context, price uint32) (val types.ShortBook, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.ShortBookKey))
+	b := store.Get(GetKeyForPrice(price))
+	if b == nil {
+		return val, false
+	}
+	k.cdc.MustUnmarshal(b, &val)
+	return val, true
+}
+
 // RemoveShortBook removes a shortBook from the store
+// DO NOT USE
 func (k Keeper) RemoveShortBook(ctx sdk.Context, id uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.ShortBookKey))
 	store.Delete(GetShortBookIDBytes(id))
+}
+
+func (k Keeper) RemoveShortBookByPrice(ctx sdk.Context, price uint32) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.ShortBookKey))
+	store.Delete(GetKeyForPrice(price))
 }
 
 // GetAllShortBook returns all shortBook
@@ -103,4 +120,8 @@ func GetShortBookIDBytes(id uint64) []byte {
 // GetShortBookIDFromBytes returns ID in uint64 format from a byte array
 func GetShortBookIDFromBytes(bz []byte) uint64 {
 	return binary.BigEndian.Uint64(bz)
+}
+
+func GetKeyForShortBook(shortBook types.ShortBook) []byte {
+	return GetKeyForPrice(uint32(shortBook.Entry.Price))
 }
