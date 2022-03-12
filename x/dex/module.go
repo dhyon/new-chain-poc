@@ -11,7 +11,9 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	dexcache "github.com/codchen/new-chain-poc/x/dex/cache"
 	"github.com/codchen/new-chain-poc/x/dex/client/cli"
+	"github.com/codchen/new-chain-poc/x/dex/exchange"
 	"github.com/codchen/new-chain-poc/x/dex/keeper"
 	"github.com/codchen/new-chain-poc/x/dex/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -170,6 +172,92 @@ func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
-func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+	orders := ctx.Context().Value(dexcache.GOCTX_KEY).(dexcache.Orders)
+	allExistingBuys := []types.OrderBook{}
+	for _, lb := range am.keeper.GetAllLongBook(ctx) {
+		allExistingBuys = append(allExistingBuys, &lb)
+	}
+	allExistingSells := []types.OrderBook{}
+	for _, sb := range am.keeper.GetAllShortBook(ctx) {
+		allExistingSells = append(allExistingSells, &sb)
+	}
+	_, mktBuyDirty, executedBuyQuantities := exchange.MatchMarketOrders(
+		orders.MarketBuys,
+		allExistingSells,
+	)
+	_, mktSellDirty, executedSellQuantities := exchange.MatchMarketOrders(
+		orders.MarketSells,
+		allExistingBuys,
+	)
+	_, limitBuyDirty, limitSellDirty := exchange.MatchLimitOrders(
+		orders.LimitBuys,
+		orders.LimitSells,
+		allExistingBuys,
+		allExistingSells,
+	)
+	idToBuys := map[uint64]types.OrderBook{}
+	idToSells := map[uint64]types.OrderBook{}
+	for _, buy := range allExistingBuys {
+		idToBuys[buy.GetId()] = buy
+	}
+	for _, sell := range allExistingSells {
+		idToSells[sell.GetId()] = sell
+	}
+
+	for i, quantity := range executedBuyQuantities {
+		if quantity > 0 {
+			// TODO: settlement & notification to market order creators
+			_, _ = i, quantity
+		}
+	}
+	for i, quantity := range executedSellQuantities {
+		if quantity > 0 {
+			// TODO: settlement & notification to market order creators
+			_, _ = i, quantity
+		}
+	}
+
+	dirtyBuys := map[uint64]bool{}
+	dirtySells := map[uint64]bool{}
+	for id := range mktBuyDirty {
+		dirtySells[id] = true
+	}
+	for id := range mktSellDirty {
+		dirtyBuys[id] = true
+	}
+	for id := range limitBuyDirty {
+		dirtyBuys[id] = true
+	}
+	for id := range limitSellDirty {
+		dirtySells[id] = true
+	}
+
+	for id := range dirtyBuys {
+		order := idToBuys[id]
+		creatorToExecuted := exchange.RebalanceAllocations(order)
+		// TODO: settlement & notification
+		_ = creatorToExecuted
+
+		if order.GetEntry().Quantity == 0 {
+			am.keeper.RemoveLongBookByPrice(ctx, uint32(order.GetEntry().Price))
+		} else {
+			longOrder := order.(*types.LongBook)
+			am.keeper.SetLongBook(ctx, *longOrder)
+		}
+	}
+	for id := range dirtySells {
+		order := idToSells[id]
+		creatorToExecuted := exchange.RebalanceAllocations(order)
+		// TODO: settlement & notification
+		_ = creatorToExecuted
+
+		if order.GetEntry().Quantity == 0 {
+			am.keeper.RemoveShortBookByPrice(ctx, uint32(order.GetEntry().Price))
+		} else {
+			shortOrder := order.(*types.ShortBook)
+			am.keeper.SetShortBook(ctx, *shortOrder)
+		}
+	}
 	return []abci.ValidatorUpdate{}
 }

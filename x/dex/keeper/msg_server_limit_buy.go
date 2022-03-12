@@ -16,7 +16,6 @@ func (k msgServer) LimitBuy(goCtx context.Context, msg *types.MsgLimitBuy) (*typ
 		Creator:  msg.Creator,
 		Price:    int64(msg.Price),
 		Quantity: int64(msg.Quantity),
-		Long:     true,
 	})
 
 	return &types.MsgLimitBuyResponse{}, nil

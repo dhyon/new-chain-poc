@@ -45,7 +45,7 @@ func (k Keeper) AppendLongBook(
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.LongBookKey))
 	appendedValue := k.cdc.MustMarshal(&longBook)
-	store.Set(GetLongBookIDBytes(longBook.Id), appendedValue)
+	store.Set(GetKeyForLongBook(longBook), appendedValue)
 
 	// Update longBook count
 	k.SetLongBookCount(ctx, count+1)
@@ -57,10 +57,11 @@ func (k Keeper) AppendLongBook(
 func (k Keeper) SetLongBook(ctx sdk.Context, longBook types.LongBook) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.LongBookKey))
 	b := k.cdc.MustMarshal(&longBook)
-	store.Set(GetLongBookIDBytes(longBook.Id), b)
+	store.Set(GetKeyForLongBook(longBook), b)
 }
 
 // GetLongBook returns a longBook from its id
+// DO NOT USE
 func (k Keeper) GetLongBook(ctx sdk.Context, id uint64) (val types.LongBook, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.LongBookKey))
 	b := store.Get(GetLongBookIDBytes(id))
@@ -71,10 +72,26 @@ func (k Keeper) GetLongBook(ctx sdk.Context, id uint64) (val types.LongBook, fou
 	return val, true
 }
 
+func (k Keeper) GetLongBookByPrice(ctx sdk.Context, price uint32) (val types.LongBook, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.LongBookKey))
+	b := store.Get(GetKeyForPrice(price))
+	if b == nil {
+		return val, false
+	}
+	k.cdc.MustUnmarshal(b, &val)
+	return val, true
+}
+
 // RemoveLongBook removes a longBook from the store
+// DO NOT USE
 func (k Keeper) RemoveLongBook(ctx sdk.Context, id uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.LongBookKey))
 	store.Delete(GetLongBookIDBytes(id))
+}
+
+func (k Keeper) RemoveLongBookByPrice(ctx sdk.Context, price uint32) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.LongBookKey))
+	store.Delete(GetKeyForPrice(price))
 }
 
 // GetAllLongBook returns all longBook
@@ -103,4 +120,14 @@ func GetLongBookIDBytes(id uint64) []byte {
 // GetLongBookIDFromBytes returns ID in uint64 format from a byte array
 func GetLongBookIDFromBytes(bz []byte) uint64 {
 	return binary.BigEndian.Uint64(bz)
+}
+
+func GetKeyForLongBook(longBook types.LongBook) []byte {
+	return GetKeyForPrice(uint32(longBook.Entry.Price))
+}
+
+func GetKeyForPrice(price uint32) []byte {
+	key := make([]byte, 4)
+	binary.BigEndian.PutUint32(key, uint32(price))
+	return key
 }
