@@ -35,5 +35,11 @@ func MatchMarketOrders(
 			}
 		}
 	}
-	return totalPrice / totalExecuted, idToExecuted, executedQuantities
+	var avgPrice int32
+	if totalExecuted == 0 {
+		avgPrice = 0
+	} else {
+		avgPrice = totalPrice / totalExecuted
+	}
+	return avgPrice, idToExecuted, executedQuantities
 }

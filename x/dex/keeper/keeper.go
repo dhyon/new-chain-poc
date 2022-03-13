@@ -5,6 +5,7 @@ import (
 
 	"github.com/tendermint/tendermint/libs/log"
 
+	dexcache "github.com/codchen/new-chain-poc/x/dex/cache"
 	"github.com/codchen/new-chain-poc/x/dex/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,6 +18,7 @@ type (
 		storeKey   sdk.StoreKey
 		memKey     sdk.StoreKey
 		paramstore paramtypes.Subspace
+		Orders     *dexcache.Orders
 	}
 )
 
@@ -32,12 +34,14 @@ func NewKeeper(
 		ps = ps.WithKeyTable(types.ParamKeyTable())
 	}
 
+	orders := dexcache.NewOrders()
 	return &Keeper{
 
 		cdc:        cdc,
 		storeKey:   storeKey,
 		memKey:     memKey,
 		paramstore: ps,
+		Orders:     &orders,
 	}
 }
 

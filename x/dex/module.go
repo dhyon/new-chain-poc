@@ -11,7 +11,6 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	dexcache "github.com/codchen/new-chain-poc/x/dex/cache"
 	"github.com/codchen/new-chain-poc/x/dex/client/cli"
 	"github.com/codchen/new-chain-poc/x/dex/exchange"
 	"github.com/codchen/new-chain-poc/x/dex/keeper"
@@ -173,7 +172,8 @@ func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	orders := ctx.Context().Value(dexcache.GOCTX_KEY).(dexcache.Orders)
+	orders := am.keeper.Orders
+	ctx.Logger().Info(fmt.Sprintf("Number of LB: %d, LS: %d, MB: %d, MS: %d", len(orders.LimitBuys), len(orders.LimitSells), len(orders.MarketBuys), len(orders.MarketSells)))
 	allExistingBuys := []types.OrderBook{}
 	for _, lb := range am.keeper.GetAllLongBook(ctx) {
 		allExistingBuys = append(allExistingBuys, &lb)
@@ -190,12 +190,13 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 		orders.MarketSells,
 		allExistingBuys,
 	)
-	_, limitBuyDirty, limitSellDirty := exchange.MatchLimitOrders(
+	_, limitBuyDirty, limitSellDirty, allExistingBuys, allExistingSells := exchange.MatchLimitOrders(
 		orders.LimitBuys,
 		orders.LimitSells,
 		allExistingBuys,
 		allExistingSells,
 	)
+	ctx.Logger().Info(fmt.Sprintf("Existing buys %d, dirty %d", len(allExistingBuys), len(limitBuyDirty)))
 	idToBuys := map[uint64]types.OrderBook{}
 	idToSells := map[uint64]types.OrderBook{}
 	for _, buy := range allExistingBuys {

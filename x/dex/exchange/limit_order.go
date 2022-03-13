@@ -10,14 +10,14 @@ func MatchLimitOrders(
 	shortOrders []dexcache.LimitOrder,
 	longBook []types.OrderBook,
 	shortBook []types.OrderBook,
-) (int32, map[uint64]int32, map[uint64]int32) {
+) (int32, map[uint64]int32, map[uint64]int32, []types.OrderBook, []types.OrderBook) {
 	longIdToExecuted := map[uint64]int32{}
 	shortIdToExecuted := map[uint64]int32{}
 	for _, order := range longOrders {
-		addOrderToOrderBook(order, longBook, longIdToExecuted)
+		longBook = addOrderToOrderBook(order, longBook, longIdToExecuted)
 	}
 	for _, order := range shortOrders {
-		addOrderToOrderBook(order, shortBook, shortIdToExecuted)
+		shortBook = addOrderToOrderBook(order, shortBook, shortIdToExecuted)
 	}
 	var totalExecuted, totalPrice int32 = 0, 0
 	var longPtr, shortPtr = len(longBook) - 1, 0
@@ -51,14 +51,20 @@ func MatchLimitOrders(
 			shortPtr += 1
 		}
 	}
-	return totalPrice / totalExecuted, longIdToExecuted, shortIdToExecuted
+	var avgPrice int32
+	if totalExecuted == 0 {
+		avgPrice = 0
+	} else {
+		avgPrice = totalPrice / totalExecuted
+	}
+	return avgPrice, longIdToExecuted, shortIdToExecuted, longBook, shortBook
 }
 
 func addOrderToOrderBook(
 	order dexcache.LimitOrder,
 	orderBook []types.OrderBook,
 	dirty map[uint64]int32,
-) {
+) []types.OrderBook {
 	isLong := order.Long
 	insertAt := -1
 	for i, ob := range orderBook {
@@ -79,7 +85,7 @@ func addOrderToOrderBook(
 				ob.GetEntry().AllocationCreator = append(ob.GetEntry().AllocationCreator, order.Creator)
 				ob.GetEntry().Allocation = append(ob.GetEntry().Allocation, int32(order.Quantity))
 			}
-			return
+			return orderBook
 		}
 		if isLong {
 			if order.Price > int64(ob.GetEntry().GetPrice()) {
@@ -123,4 +129,5 @@ func addOrderToOrderBook(
 		orderBook[insertAt] = newOrder
 	}
 	dirty[uint64(order.Price)] = 0
+	return orderBook
 }
