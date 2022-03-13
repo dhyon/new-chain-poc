@@ -1,6 +1,14 @@
 package dex
 
-const GOCTX_KEY = "dex_goctx"
+import "fmt"
+
+const LIMIT_BUY_EVENT_TYPE = "dex_lb"
+const LIMIT_SELL_EVENT_TYPE = "dex_ls"
+const MARKET_BUY_EVENT_TYPE = "dex_mb"
+const MARKET_SELL_EVENT_TYPE = "dex_ms"
+const CREATOR_ATTR = "creator"
+const PRICE_ATTR = "price"
+const QUANTITY_ATTR = "quantity"
 
 type LimitOrder struct {
 	Price    int64
@@ -20,6 +28,10 @@ type Orders struct {
 	LimitSells  []LimitOrder
 	MarketBuys  []MarketOrder
 	MarketSells []MarketOrder
+}
+
+func (o Orders) String() string {
+	return fmt.Sprintf("Limit Buys: %d, Limit Sells: %d, Market Buys: %d, Market Sells: %d", len(o.LimitBuys), len(o.LimitSells), len(o.MarketBuys), len(o.MarketSells))
 }
 
 func NewOrders() Orders {

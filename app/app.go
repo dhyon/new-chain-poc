@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -101,7 +100,6 @@ import (
 	newchainpocmoduletypes "github.com/codchen/new-chain-poc/x/newchainpoc/types"
 
 	dexmodule "github.com/codchen/new-chain-poc/x/dex"
-	dexcache "github.com/codchen/new-chain-poc/x/dex/cache"
 	dexmodulekeeper "github.com/codchen/new-chain-poc/x/dex/keeper"
 	dexmoduletypes "github.com/codchen/new-chain-poc/x/dex/types"
 
@@ -630,9 +628,10 @@ func (app App) GetBaseApp() *baseapp.BaseApp { return app.BaseApp }
 
 // BeginBlocker application updates every begin block
 func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
-	ctx.WithContext(
-		context.WithValue(ctx.Context(), dexcache.GOCTX_KEY, dexcache.NewOrders()),
-	)
+	// newCtx := ctx.WithContext(
+	// 	context.WithValue(ctx.Context(), dexcache.GOCTX_KEY, dexcache.NewOrders()),
+	// )
+	// app.Logger().Info(fmt.Sprintf("BeginBlocker context %s", newCtx.Context().Value(dexcache.GOCTX_KEY).(dexcache.Orders)))
 	return app.mm.BeginBlock(ctx, req)
 }
 
