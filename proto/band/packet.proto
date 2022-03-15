@@ -1,0 +1,18 @@
+syntax = "proto3";
+package codchen.newchainpoc.band;
+
+// this line is used by starport scaffolding # proto/packet/import
+
+option go_package = "github.com/codchen/new-chain-poc/x/band/types";
+
+message BandPacketData {
+    oneof packet {
+        NoData noData = 1;
+        // this line is used by starport scaffolding # ibc/packet/proto/field
+    }
+}
+
+message NoData {
+}
+
+// this line is used by starport scaffolding # ibc/packet/proto/message

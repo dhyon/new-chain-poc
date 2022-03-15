@@ -1,0 +1,15 @@
+syntax = "proto3";
+package codchen.newchainpoc.band;
+
+import "gogoproto/gogo.proto";
+import "band/params.proto";
+// this line is used by starport scaffolding # genesis/proto/import
+
+option go_package = "github.com/codchen/new-chain-poc/x/band/types";
+
+// GenesisState defines the band module's genesis state.
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+  string port_id = 2;
+  // this line is used by starport scaffolding # genesis/proto/state
+}

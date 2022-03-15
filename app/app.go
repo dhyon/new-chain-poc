@@ -103,6 +103,10 @@ import (
 	dexmodulekeeper "github.com/codchen/new-chain-poc/x/dex/keeper"
 	dexmoduletypes "github.com/codchen/new-chain-poc/x/dex/types"
 
+	bandmodule "github.com/codchen/new-chain-poc/x/band"
+	bandmodulekeeper "github.com/codchen/new-chain-poc/x/band/keeper"
+	bandmoduletypes "github.com/codchen/new-chain-poc/x/band/types"
+
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	"github.com/CosmWasm/wasmd/x/wasm"
@@ -158,6 +162,7 @@ var (
 		wasm.AppModuleBasic{},
 		newchainpocmodule.AppModuleBasic{},
 		dexmodule.AppModuleBasic{},
+		bandmodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
 
@@ -234,6 +239,8 @@ type App struct {
 
 	DexKeeper dexmodulekeeper.Keeper
 
+	ScopedBandKeeper capabilitykeeper.ScopedKeeper
+	BandKeeper       bandmodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// mm is the module manager
@@ -274,6 +281,7 @@ func New(
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey, wasm.StoreKey,
 		newchainpocmoduletypes.StoreKey,
 		dexmoduletypes.StoreKey,
+		bandmoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -421,12 +429,26 @@ func New(
 	)
 	dexModule := dexmodule.NewAppModule(appCodec, app.DexKeeper, app.AccountKeeper, app.BankKeeper)
 
+	scopedBandKeeper := app.CapabilityKeeper.ScopeToModule(bandmoduletypes.ModuleName)
+	app.ScopedBandKeeper = scopedBandKeeper
+	app.BandKeeper = *bandmodulekeeper.NewKeeper(
+		appCodec,
+		keys[bandmoduletypes.StoreKey],
+		keys[bandmoduletypes.MemStoreKey],
+		app.GetSubspace(bandmoduletypes.ModuleName),
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper,
+		scopedBandKeeper,
+	)
+	bandModule := bandmodule.NewAppModule(appCodec, app.BandKeeper, app.AccountKeeper, app.BankKeeper)
+
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
 	ibcRouter.AddRoute(wasm.ModuleName, wasm.NewIBCHandler(app.WasmKeeper, app.IBCKeeper.ChannelKeeper))
+	ibcRouter.AddRoute(bandmoduletypes.ModuleName, bandModule)
 	// this line is used by starport scaffolding # ibc/app/router
 	app.IBCKeeper.SetRouter(ibcRouter)
 
@@ -463,6 +485,7 @@ func New(
 		transferModule,
 		newchainpocModule,
 		dexModule,
+		bandModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 
@@ -491,6 +514,7 @@ func New(
 		dexmoduletypes.ModuleName,
 		wasm.ModuleName,
 		newchainpocmoduletypes.ModuleName,
+		bandmoduletypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -514,6 +538,7 @@ func New(
 		dexmoduletypes.ModuleName,
 		wasm.ModuleName,
 		newchainpocmoduletypes.ModuleName,
+		bandmoduletypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -542,6 +567,7 @@ func New(
 		dexmoduletypes.ModuleName,
 		wasm.ModuleName,
 		newchainpocmoduletypes.ModuleName,
+		bandmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
 
@@ -567,6 +593,7 @@ func New(
 		transferModule,
 		newchainpocModule,
 		dexModule,
+		bandModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 	app.sm.RegisterStoreDecoders()
@@ -772,6 +799,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(newchainpocmoduletypes.ModuleName)
 	paramsKeeper.Subspace(wasm.ModuleName)
 	paramsKeeper.Subspace(dexmoduletypes.ModuleName)
+	paramsKeeper.Subspace(bandmoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	return paramsKeeper
